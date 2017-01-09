@@ -2,7 +2,7 @@
 import numpy as np
 import random as rand
 import mminst_loader
-
+import timeit
 class Network(object):
 
 
@@ -117,10 +117,14 @@ def sigmoid_prime(z):
 
 def main():
 
-    net = Network([784,30,10])
+    net = Network([784,15,10])
     training_data, validation_data, test_data = mminst_loader.load_data_wrapper()
-    net.SGD(training_data, 30, 10 , 3.0 , test_data=test_data)
 
+    print "Starting"
+    start_time = timeit.default_timer()
+    net.SGD(training_data, 30, 10, 3.0, test_data=test_data)
+    elapsed = timeit.default_timer() - start_time
+    print "Elapsed time " + str(elapsed)
 
 
 
