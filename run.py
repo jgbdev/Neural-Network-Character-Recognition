@@ -44,14 +44,26 @@ class Network(object):
                 print "Epoch {0} complete".format(j)
 
     def update_mini_batch(self, mini_batch, eta):
+
+        batch_size = len(mini_batch)
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
 
 
-        for x,y in mini_batch:
-            delta_nabla_b, delta_nabla_w = self.backprop(x ,y)
-            nabla_b = [nb + dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
-            nabla_w = [nw + dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
+        x_b = []
+        y_b = []
+
+
+        for x, y in mini_batch:
+            x_b.append(x)
+            y_b.append(y)
+
+        delta_nabla_b, delta_nabla_w = self.backprop(x_b, y_b)
+
+        for i in xrange(batch_size):
+            for j in xrange(0,self.num_layers -1):
+                nabla_b[j] += delta_nabla_b[j][i]
+                nabla_w[j] += delta_nabla_w[j][i]
 
         self.weights = [w - (eta / len(mini_batch)) * nw
                         for w, nw in zip(self.weights, nabla_w)]
@@ -72,20 +84,20 @@ class Network(object):
             exit()
 
 
-        nabla_b = [[np.zeros(b.shape) for x in xrange(7)] for b in self.biases]
-        nabla_w = [[np.zeros(w.shape) for x in xrange(7)] for w in self.weights]
+        nabla_b = [[np.zeros(b.shape) for _ in xrange(len_x)] for b in self.biases]
+        nabla_w = [[np.zeros(w.shape) for _ in xrange(len_y)] for w in self.weights]
 
         # feedforward
-        activation = x_b
-        activations = [x_b]  # list to store all the activations, layer by layer
+        activation = x
+        activations = [x]  # list to store all the activations, layer by layer
         zs = []  # list to store all the z vectors, layer by layer
         for b, w in zip(self.biases, self.weights):
-            z = np.einsum('ij,ajk->aik', w, activation) + [b for _ in xrange(7)]
+            z = np.einsum('ij,ajk->aik', w, activation) + [b for _ in xrange(len_x)]
             zs.append(z)
             activation = sigmoid(z)
             activations.append(activation)
         # backward pass
-        delta = self.cost_derivative(activations[-1], y_b) * \
+        delta = self.cost_derivative(activations[-1], y) * \
                 sigmoid_prime(zs[-1])
         nabla_b[-1] = delta
         nabla_w[-1] = np.einsum('aij,akj->aik', delta, activations[-2])
