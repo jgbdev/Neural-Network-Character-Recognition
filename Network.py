@@ -27,33 +27,31 @@ class Network(object):
 
         @staticmethod
         def fn(a, y):
-            return np.sum(np.nan_to_num(-y*np.log(a)-(1-y)*np.log(1-a)))
+            return np.sum(
+                np.nan_to_num(-y * np.log(a) - (1 - y) * np.log(1 - a)))
 
     def __init__(self, sizes, cost=CrossEntropy, debug=False):
         self.num_layers = len(sizes)
         self.biases = [np.random.randn(y, 1) for y in sizes[1:]]
-        self.weights = [np.random.randn(y , x)
-                        for x,y in zip (sizes[:-1], sizes[1:])]
+        self.weights = [np.random.randn(y, x)
+                        for x, y in zip(sizes[:-1], sizes[1:])]
         self.cost = cost
         self.epoch_test_accuracy = []
         self.epoch_train_accuracy = []
         self.epoch_train_cost = []
         self.epoch_test_cost = []
-        self.debug=debug
+        self.debug = debug
+
     def feedforward(self, a):
         for b, w in zip(self.biases, self.weights):
-            a = sigmoid(np.dot(w,a) + b)
+            a = sigmoid(np.dot(w, a) + b)
         return a
-
 
     def weight_bias_initializer(self):
 
-
         return ""
 
-
-
-    def SGD(self, training_data, epochs , mini_batch_size, eta, test_data=None):
+    def SGD(self, training_data, epochs, mini_batch_size, eta, test_data=None):
         """
         :param self:
         :param training_data: (X,Y) input.
@@ -68,26 +66,28 @@ class Network(object):
         epoch_train_cost = []
         epoch_test_cost = []
 
-
-        if test_data: n_test = len(test_data)
+        if test_data:
+            n_test = len(test_data)
         n = len(training_data)
 
         for j in xrange(epochs):
             rand.shuffle(training_data)
             mini_batches = [
-                training_data[k: k+mini_batch_size]
+                training_data[k: k + mini_batch_size]
                 for k in range(0, n, mini_batch_size)]
-            for mini_batch in mini_batches :
+            for mini_batch in mini_batches:
                 self.update_mini_batch(mini_batch, eta)
             if test_data:
                 if self.debug:
                     print "Epoch {0}: {1} / {2}".format(
-                        j, self.evaluate(test_data) , n_test)
+                        j, self.evaluate(test_data), n_test)
             else:
                 if self.debug:
                     print "Epoch {0} complete".format(j)
 
-            epoch_train_accuracy.append(self.calc_accuracy(training_data, convert=True))
+            epoch_train_accuracy.append(
+                self.calc_accuracy(
+                    training_data, convert=True))
             epoch_test_accuracy.append(self.calc_accuracy(test_data))
 
             epoch_test_cost.append(self.calc_cost(test_data, convert=True))
@@ -112,26 +112,29 @@ class Network(object):
     def calc_cost(self, data, convert=False):
 
         if convert:
-            cost_total = [(self.cost).fn(self.feedforward(x), vectorized_result(y))
-                          for (x,y) in data]
+            cost_total = [
+                (self.cost).fn(
+                    self.feedforward(x),
+                    vectorized_result(y)) for (
+                    x,
+                    y) in data]
         else:
-            cost_total = [(self.cost).fn(self.feedforward(x),y)
-                            for (x , y) in data]
+            cost_total = [(self.cost).fn(self.feedforward(x), y)
+                          for (x, y) in data]
 
-        return np.sum(cost_total)/len(data)
-
-
+        return np.sum(cost_total) / len(data)
 
     def update_mini_batch(self, mini_batch, eta):
 
+        x = np.column_stack((mini_batch[i][0]
+                             for i in xrange(len(mini_batch))))
+        y = np.column_stack((mini_batch[i][1]
+                             for i in xrange(len(mini_batch))))
 
-        x = np.column_stack((mini_batch[i][0] for i in xrange(len(mini_batch))))
-        y = np.column_stack((mini_batch[i][1] for i in xrange(len(mini_batch))))
+        nabla_b, nabla_w = self.backprop(x, y)
 
-        nabla_b , nabla_w = self.backprop(x, y)
-
-        for i in xrange(self.num_layers-1):
-            nabla_b[i] = np.sum(nabla_b[i], axis=1).reshape(len(nabla_b[i]),1)
+        for i in xrange(self.num_layers - 1):
+            nabla_b[i] = np.sum(nabla_b[i], axis=1).reshape(len(nabla_b[i]), 1)
 
         self.weights = [w - (eta / len(mini_batch)) * nw
                         for w, nw in zip(self.weights, nabla_w)]
@@ -150,12 +153,13 @@ class Network(object):
         activations = [x]  # list to store all the activations, layer by layer
         zs = []  # list to store all the z vectors, layer by layer
         for b, w in zip(self.biases, self.weights):
-            z = np.dot(w, activation) + np.column_stack((b for _ in xrange(x.shape[1])))
+            z = np.dot(w, activation) + \
+                np.column_stack((b for _ in xrange(x.shape[1])))
             zs.append(z)
             activation = sigmoid(z)
             activations.append(activation)
         # backward pass
-        delta = (self.cost).delta(z,activations[-1], y)
+        delta = (self.cost).delta(z, activations[-1], y)
         nabla_b[-1] = delta
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
         # Note that the variable l in the loop below is used a little
@@ -197,18 +201,19 @@ def vectorized_result(j):
     return e
 
 
-
 def sigmoid(z):
     """The sigmoid function."""
-    return 1.0/(1.0+np.exp(-z))
+    return 1.0 / (1.0 + np.exp(-z))
+
 
 def sigmoid_prime(z):
     """Derivative of the sigmoid function."""
-    return sigmoid(z)*(1-sigmoid(z))
+    return sigmoid(z) * (1 - sigmoid(z))
+
 
 def main():
 
-    net = Network([784,100,10], cost=Network.CrossEntropy)
+    net = Network([784, 100, 10], cost=Network.CrossEntropy)
 
     training_data, validation_data, test_data = mminst_loader.load_data_wrapper()
 
