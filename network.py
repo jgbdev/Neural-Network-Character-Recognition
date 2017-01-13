@@ -6,7 +6,6 @@ import math as m
 import timeit
 
 
-
 class Network(object):
 
     class QuadraticCost(object):
@@ -150,8 +149,7 @@ def sigmoid_prime(z):
 
 def main():
 
-    net = Network([784,30,10], cost=Network.CrossEntropy)
-
+    net = Network([784,100,10], cost=Network.CrossEntropy)
 
     training_data, validation_data, test_data = mminst_loader.load_data_wrapper()
 
@@ -160,8 +158,6 @@ def main():
     net.SGD(training_data, 30, 10, 0.5, test_data=test_data)
     elapsed = timeit.default_timer() - start_time
     print "Elapsed time " + str(elapsed)
-
-
 
 if __name__ == "__main__":
     main()
