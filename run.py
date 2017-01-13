@@ -7,30 +7,27 @@ import timeit
 
 
 
-class QuadraticCost(object):
-
-    @staticmethod
-    def delta(z, a , y):
-        return sigmoid_prime(z) * ( a - y)
-
-    @staticmethod
-    def fn(a , y):
-        return 0.5 * m.pow(y-a,2)
-
-
-
-class CrossEntropy(object):
-
-    @staticmethod
-    def delta( z, a, y):
-        return (a- y)
-
-    @staticmethod
-    def fn( a, y):
-        return -( y*m.log1p(a) + (1-y)*m.log1p(1-a))
-
-
 class Network(object):
+
+    class QuadraticCost(object):
+
+        @staticmethod
+        def delta(z, a, y):
+            return sigmoid_prime(z) * (a - y)
+
+        @staticmethod
+        def fn(a, y):
+            return 0.5 * m.pow(y - a, 2)
+
+    class CrossEntropy(object):
+
+        @staticmethod
+        def delta(z, a, y):
+            return (a - y)
+
+        @staticmethod
+        def fn(a, y):
+            return -(y * m.log1p(a) + (1 - y) * m.log1p(1 - a))
 
     def __init__(self, sizes, cost=CrossEntropy):
         self.num_layers = len(sizes)
@@ -153,7 +150,7 @@ def sigmoid_prime(z):
 
 def main():
 
-    net = Network([784,45, 15,10], cost=QuadraticCost)
+    net = Network([784,30,10], cost=Network.CrossEntropy)
 
 
     training_data, validation_data, test_data = mminst_loader.load_data_wrapper()
