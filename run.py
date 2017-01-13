@@ -2,21 +2,56 @@
 import numpy as np
 import random as rand
 import mminst_loader
+import math as m
 import timeit
+
+
+
+class QuadraticCost(object):
+
+    @staticmethod
+    def delta(z, a , y):
+        return sigmoid_prime(z) * ( a - y)
+
+    @staticmethod
+    def fn(a , y):
+        return 0.5 * m.pow(y-a,2)
+
+
+
+class CrossEntropy(object):
+
+    @staticmethod
+    def delta( z, a, y):
+        return (a- y)
+
+    @staticmethod
+    def fn( a, y):
+        return -( y*m.log1p(a) + (1-y)*m.log1p(1-a))
+
+
 class Network(object):
 
-
-    def __init__(self, sizes):
+    def __init__(self, sizes, cost=CrossEntropy):
         self.num_layers = len(sizes)
         self.biases = [np.random.randn(y, 1) for y in sizes[1:]]
         self.weights = [np.random.randn(y , x)
                         for x,y in zip (sizes[:-1], sizes[1:])]
-
+        self.cost = cost
     def feedforward(self, a):
         for b, w in zip(self.biases, self.weights):
             a = sigmoid(np.dot(w,a) + b)
 
         return a
+
+
+    def weight_bias_initializer(self):
+
+
+        return ""
+
+
+
 
     def SGD(self, training_data, epochs , mini_batch_size, eta, test_data=None):
         """
@@ -76,8 +111,7 @@ class Network(object):
             activation = sigmoid(z)
             activations.append(activation)
         # backward pass
-        delta = self.cost_derivative(activations[-1], y) * \
-                sigmoid_prime(zs[-1])
+        delta = (self.cost).delta(z,activations[-1], y)
         nabla_b[-1] = delta
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
         # Note that the variable l in the loop below is used a little
@@ -119,12 +153,14 @@ def sigmoid_prime(z):
 
 def main():
 
-    net = Network([784,15,10])
+    net = Network([784,45, 15,10], cost=QuadraticCost)
+
+
     training_data, validation_data, test_data = mminst_loader.load_data_wrapper()
 
     print "Starting"
     start_time = timeit.default_timer()
-    net.SGD(training_data, 30, 10, 3.0, test_data=test_data)
+    net.SGD(training_data, 30, 10, 0.5, test_data=test_data)
     elapsed = timeit.default_timer() - start_time
     print "Elapsed time " + str(elapsed)
 
