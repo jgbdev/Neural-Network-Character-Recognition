@@ -29,7 +29,7 @@ class Network(object):
         def fn(a, y):
             return np.sum(np.nan_to_num(-y*np.log(a)-(1-y)*np.log(1-a)))
 
-    def __init__(self, sizes, cost=CrossEntropy):
+    def __init__(self, sizes, cost=CrossEntropy, debug=False):
         self.num_layers = len(sizes)
         self.biases = [np.random.randn(y, 1) for y in sizes[1:]]
         self.weights = [np.random.randn(y , x)
@@ -39,6 +39,7 @@ class Network(object):
         self.epoch_train_accuracy = []
         self.epoch_train_cost = []
         self.epoch_test_cost = []
+        self.debug=debug
     def feedforward(self, a):
         for b, w in zip(self.biases, self.weights):
             a = sigmoid(np.dot(w,a) + b)
@@ -79,10 +80,12 @@ class Network(object):
             for mini_batch in mini_batches :
                 self.update_mini_batch(mini_batch, eta)
             if test_data:
-                print "Epoch {0}: {1} / {2}".format(
-                    j, self.evaluate(test_data) , n_test)
+                if self.debug:
+                    print "Epoch {0}: {1} / {2}".format(
+                        j, self.evaluate(test_data) , n_test)
             else:
-                print "Epoch {0} complete".format(j)
+                if self.debug:
+                    print "Epoch {0} complete".format(j)
 
             epoch_train_accuracy.append(self.calc_accuracy(training_data, convert=True))
             epoch_test_accuracy.append(self.calc_accuracy(test_data))
