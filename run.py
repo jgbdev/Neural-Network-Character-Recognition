@@ -124,7 +124,7 @@ def main():
 
     print "Starting"
     start_time = timeit.default_timer()
-    net.SGD(training_data, 30, 7, 3.0, test_data=test_data)
+    net.SGD(training_data, 30, 10, 3.0, test_data=test_data)
     elapsed = timeit.default_timer() - start_time
     print "Elapsed time " + str(elapsed)
 
