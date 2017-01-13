@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import numpy as np
 import random as rand
-import mninst_loader
+import mminst_loader
 import timeit
 class Network(object):
 
@@ -45,25 +45,14 @@ class Network(object):
 
     def update_mini_batch(self, mini_batch, eta):
 
-        batch_size = len(mini_batch)
-        nabla_b = [np.zeros(b.shape) for b in self.biases]
-        nabla_w = [np.zeros(w.shape) for w in self.weights]
 
+        x = np.column_stack((mini_batch[i][0] for i in xrange(len(mini_batch))))
+        y = np.column_stack((mini_batch[i][1] for i in xrange(len(mini_batch))))
 
-        x_b = []
-        y_b = []
+        nabla_b , nabla_w = self.backprop(x, y)
 
-
-        for x, y in mini_batch:
-            x_b.append(x)
-            y_b.append(y)
-
-        delta_nabla_b, delta_nabla_w = self.backprop(x_b, y_b)
-
-        for i in xrange(batch_size):
-            for j in xrange(0,self.num_layers -1):
-                nabla_b[j] += delta_nabla_b[j][i]
-                nabla_w[j] += delta_nabla_w[j][i]
+        for i in xrange(self.num_layers-1):
+            nabla_b[i] = np.sum(nabla_b[i], axis=1).reshape(len(nabla_b[i]),1)
 
         self.weights = [w - (eta / len(mini_batch)) * nw
                         for w, nw in zip(self.weights, nabla_w)]
@@ -75,24 +64,14 @@ class Network(object):
         gradient for the cost function C_x.  ``nabla_b`` and
         ``nabla_w`` are layer-by-layer lists of numpy arrays, similar
         to ``self.biases`` and ``self.weights``."""
-
-        len_x = len(x)
-        len_y = len(y)
-
-        if(not (len_x == len_y)):
-            print "Vectors x, y must be equal length"
-            exit()
-
-
-        nabla_b = [[np.zeros(b.shape) for _ in xrange(len_x)] for b in self.biases]
-        nabla_w = [[np.zeros(w.shape) for _ in xrange(len_y)] for w in self.weights]
-
+        nabla_b = [np.zeros(b.shape) for b in self.biases]
+        nabla_w = [np.zeros(w.shape) for w in self.weights]
         # feedforward
         activation = x
         activations = [x]  # list to store all the activations, layer by layer
         zs = []  # list to store all the z vectors, layer by layer
         for b, w in zip(self.biases, self.weights):
-            z = np.einsum('ij,ajk->aik', w, activation) + [b for _ in xrange(len_x)]
+            z = np.dot(w, activation) + np.column_stack((b for _ in xrange(x.shape[1])))
             zs.append(z)
             activation = sigmoid(z)
             activations.append(activation)
@@ -100,8 +79,7 @@ class Network(object):
         delta = self.cost_derivative(activations[-1], y) * \
                 sigmoid_prime(zs[-1])
         nabla_b[-1] = delta
-        nabla_w[-1] = np.einsum('aij,akj->aik', delta, activations[-2])
-
+        nabla_w[-1] = np.dot(delta, activations[-2].transpose())
         # Note that the variable l in the loop below is used a little
         # differently to the notation in Chapter 2 of the book.  Here,
         # l = 1 means the last layer of neurons, l = 2 is the
@@ -111,12 +89,10 @@ class Network(object):
         for l in xrange(2, self.num_layers):
             z = zs[-l]
             sp = sigmoid_prime(z)
-            delta = np.einsum('ji,ajk->aik', self.weights[-l + 1], delta) * sp
+            delta = np.dot(self.weights[-l + 1].transpose(), delta) * sp
             nabla_b[-l] = delta
-            nabla_w[-l] = np.einsum('aij,akj->aik', delta, activations[-l - 1])
+            nabla_w[-l] = np.dot(delta, activations[-l - 1].transpose())
         return (nabla_b, nabla_w)
-
-
 
     def evaluate(self, test_data):
         """Return the number of test inputs for which the neural
@@ -144,11 +120,11 @@ def sigmoid_prime(z):
 def main():
 
     net = Network([784,15,10])
-    training_data, validation_data, test_data = mninst_loader.load_data_wrapper()
+    training_data, validation_data, test_data = mminst_loader.load_data_wrapper()
 
     print "Starting"
     start_time = timeit.default_timer()
-    net.SGD(training_data, 30, 10, 3.0, test_data=test_data)
+    net.SGD(training_data, 30, 7, 3.0, test_data=test_data)
     elapsed = timeit.default_timer() - start_time
     print "Elapsed time " + str(elapsed)
 
