@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from __future__ import division
 import numpy as np
 import random as rand
 import mminst_loader
@@ -34,6 +35,7 @@ class Network(object):
         self.weights = [np.random.randn(y , x)
                         for x,y in zip (sizes[:-1], sizes[1:])]
         self.cost = cost
+        self.epoch_scores = []
     def feedforward(self, a):
         for b, w in zip(self.biases, self.weights):
             a = sigmoid(np.dot(w,a) + b)
@@ -48,7 +50,6 @@ class Network(object):
 
 
 
-
     def SGD(self, training_data, epochs , mini_batch_size, eta, test_data=None):
         """
         :param self:
@@ -58,6 +59,8 @@ class Network(object):
         :param eta: Number of iterations
         :param test_data:
         """
+
+        scores = []
 
         if test_data: n_test = len(test_data)
         n = len(training_data)
@@ -69,10 +72,16 @@ class Network(object):
             for mini_batch in mini_batches :
                 self.update_mini_batch(mini_batch, eta)
             if test_data:
+                score = self.evaluate(test_data)
+                scores.append(score/n_test)
                 print "Epoch {0}: {1} / {2}".format(
-                    j, self.evaluate(test_data), n_test)
+                    j, score , n_test)
             else:
                 print "Epoch {0} complete".format(j)
+
+        self.epoch_scores = scores
+
+
 
     def update_mini_batch(self, mini_batch, eta):
 
@@ -155,7 +164,7 @@ def main():
 
     print "Starting"
     start_time = timeit.default_timer()
-    net.SGD(training_data, 30, 10, 0.5, test_data=test_data)
+    net.SGD(training_data, 30, 2, 0.5, test_data=test_data)
     elapsed = timeit.default_timer() - start_time
     print "Elapsed time " + str(elapsed)
 
