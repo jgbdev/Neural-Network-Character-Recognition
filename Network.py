@@ -27,7 +27,7 @@ class Network(object):
 
         @staticmethod
         def fn(a, y):
-            return -(y * m.log1p(a) + (1 - y) * m.log1p(1 - a))
+            return np.sum(np.nan_to_num(-y*np.log(a)-(1-y)*np.log(1-a)))
 
     def __init__(self, sizes, cost=CrossEntropy):
         self.num_layers = len(sizes)
@@ -35,11 +35,13 @@ class Network(object):
         self.weights = [np.random.randn(y , x)
                         for x,y in zip (sizes[:-1], sizes[1:])]
         self.cost = cost
-        self.epoch_scores = []
+        self.epoch_test_accuracy = []
+        self.epoch_train_accuracy = []
+        self.epoch_train_cost = []
+        self.epoch_test_cost = []
     def feedforward(self, a):
         for b, w in zip(self.biases, self.weights):
             a = sigmoid(np.dot(w,a) + b)
-
         return a
 
 
@@ -60,10 +62,15 @@ class Network(object):
         :param test_data:
         """
 
-        scores = []
+        epoch_train_accuracy = []
+        epoch_accuracy_train = []
+        epoch_train_cost = []
+        epoch_test_cost = []
+
 
         if test_data: n_test = len(test_data)
         n = len(training_data)
+
         for j in xrange(epochs):
             rand.shuffle(training_data)
             mini_batches = [
@@ -72,14 +79,43 @@ class Network(object):
             for mini_batch in mini_batches :
                 self.update_mini_batch(mini_batch, eta)
             if test_data:
-                score = self.evaluate(test_data)
-                scores.append(score/n_test)
                 print "Epoch {0}: {1} / {2}".format(
-                    j, score , n_test)
+                    j, self.evaluate(test_data) , n_test)
             else:
                 print "Epoch {0} complete".format(j)
 
-        self.epoch_scores = scores
+            epoch_accuracy_train.append(self.calc_accuracy(training_data, convert=True))
+            epoch_train_accuracy.append(self.calc_accuracy(test_data))
+
+            epoch_test_cost.append(self.calc_cost(test_data, convert=True))
+            epoch_train_cost.append(self.calc_cost(training_data))
+
+        self.epoch_train_accuracy = epoch_accuracy_train
+        self.epoch_test_accuracy = epoch_train_accuracy
+        self.epoch_train_cost = epoch_train_cost
+        self.epoch_test_cost = epoch_test_cost
+
+    def calc_accuracy(self, data, convert=False):
+
+        if convert:
+            test_results = [(np.argmax(self.feedforward(x)), np.argmax(y))
+                            for (x, y) in data]
+        else:
+            test_results = [(np.argmax(self.feedforward(x)), y)
+                            for (x, y) in data]
+
+        return sum(int(x == y) for (x, y) in test_results) / len(data)
+
+    def calc_cost(self, data, convert=False):
+
+        if convert:
+            cost_total = [(self.cost).fn(self.feedforward(x), vectorized_result(y))
+                          for (x,y) in data]
+        else:
+            cost_total = [(self.cost).fn(self.feedforward(x),y)
+                            for (x , y) in data]
+
+        return np.sum(cost_total)/len(data)
 
 
 
@@ -148,6 +184,17 @@ class Network(object):
         return (output_activations - y)
 
 
+def vectorized_result(j):
+    """Return a 10-dimensional unit vector with a 1.0 in the j'th position
+    and zeroes elsewhere.  This is used to convert a digit (0...9)
+    into a corresponding desired output from the neural network.
+    """
+    e = np.zeros((10, 1))
+    e[j] = 1.0
+    return e
+
+
+
 def sigmoid(z):
     """The sigmoid function."""
     return 1.0/(1.0+np.exp(-z))
@@ -164,7 +211,7 @@ def main():
 
     print "Starting"
     start_time = timeit.default_timer()
-    net.SGD(training_data, 30, 2, 0.5, test_data=test_data)
+    net.SGD(training_data[1000], 30, 2, 0.5, test_data=test_data)
     elapsed = timeit.default_timer() - start_time
     print "Elapsed time " + str(elapsed)
 
