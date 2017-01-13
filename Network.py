@@ -63,7 +63,7 @@ class Network(object):
         """
 
         epoch_train_accuracy = []
-        epoch_accuracy_train = []
+        epoch_test_accuracy = []
         epoch_train_cost = []
         epoch_test_cost = []
 
@@ -84,14 +84,14 @@ class Network(object):
             else:
                 print "Epoch {0} complete".format(j)
 
-            epoch_accuracy_train.append(self.calc_accuracy(training_data, convert=True))
-            epoch_train_accuracy.append(self.calc_accuracy(test_data))
+            epoch_train_accuracy.append(self.calc_accuracy(training_data, convert=True))
+            epoch_test_accuracy.append(self.calc_accuracy(test_data))
 
             epoch_test_cost.append(self.calc_cost(test_data, convert=True))
             epoch_train_cost.append(self.calc_cost(training_data))
 
-        self.epoch_train_accuracy = epoch_accuracy_train
-        self.epoch_test_accuracy = epoch_train_accuracy
+        self.epoch_train_accuracy = epoch_train_accuracy
+        self.epoch_test_accuracy = epoch_test_accuracy
         self.epoch_train_cost = epoch_train_cost
         self.epoch_test_cost = epoch_test_cost
 
