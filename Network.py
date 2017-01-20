@@ -33,8 +33,9 @@ class Network(object):
     def __init__(self, sizes, cost=CrossEntropy, debug=False):
         self.num_layers = len(sizes)
         self.biases = [np.random.randn(y, 1) for y in sizes[1:]]
-        self.weights = [np.random.randn(y, x)
+        self.weights = [(1 / m.sqrt(x)) * np.random.randn(y, x)
                         for x, y in zip(sizes[:-1], sizes[1:])]
+
         self.cost = cost
         self.epoch_test_accuracy = []
         self.epoch_train_accuracy = []
@@ -51,7 +52,7 @@ class Network(object):
 
         return ""
 
-    def SGD(self, training_data, epochs, mini_batch_size, eta, test_data=None):
+    def SGD(self, training_data, epochs, mini_batch_size, eta, decay=0.0,test_data=None):
         """
         :param self:
         :param training_data: (X,Y) input.
@@ -76,7 +77,7 @@ class Network(object):
                 training_data[k: k + mini_batch_size]
                 for k in range(0, n, mini_batch_size)]
             for mini_batch in mini_batches:
-                self.update_mini_batch(mini_batch, eta)
+                self.update_mini_batch(mini_batch, eta ,decay ,  n)
             if test_data:
                 if self.debug:
                     print "Epoch {0}: {1} / {2}".format(
@@ -85,17 +86,16 @@ class Network(object):
                 if self.debug:
                     print "Epoch {0} complete".format(j)
 
-            epoch_train_accuracy.append(
-                self.calc_accuracy(
-                    training_data, convert=True))
-            epoch_test_accuracy.append(self.calc_accuracy(test_data))
-
-            epoch_test_cost.append(self.calc_cost(test_data, convert=True))
+            epoch_train_accuracy.append(self.calc_accuracy(training_data, convert=True))
             epoch_train_cost.append(self.calc_cost(training_data))
 
+            epoch_test_accuracy.append(self.calc_accuracy(test_data))
+            epoch_test_cost.append(self.calc_cost(test_data, convert=True))
+
         self.epoch_train_accuracy = epoch_train_accuracy
-        self.epoch_test_accuracy = epoch_test_accuracy
         self.epoch_train_cost = epoch_train_cost
+
+        self.epoch_test_accuracy = epoch_test_accuracy
         self.epoch_test_cost = epoch_test_cost
 
     def calc_accuracy(self, data, convert=False):
@@ -124,7 +124,7 @@ class Network(object):
 
         return np.sum(cost_total) / len(data)
 
-    def update_mini_batch(self, mini_batch, eta):
+    def update_mini_batch(self, mini_batch, eta , decay ,n):
 
         x = np.column_stack((mini_batch[i][0]
                              for i in xrange(len(mini_batch))))
@@ -136,7 +136,7 @@ class Network(object):
         for i in xrange(self.num_layers - 1):
             nabla_b[i] = np.sum(nabla_b[i], axis=1).reshape(len(nabla_b[i]), 1)
 
-        self.weights = [w - (eta / len(mini_batch)) * nw
+        self.weights = [(1 - (decay * eta / n)) * w - (eta / len(mini_batch)) * nw
                         for w, nw in zip(self.weights, nabla_w)]
         self.biases = [b - (eta / len(mini_batch)) * nb
                        for b, nb in zip(self.biases, nabla_b)]
@@ -213,13 +213,13 @@ def sigmoid_prime(z):
 
 def main():
 
-    net = Network([784, 100, 10], cost=Network.CrossEntropy)
+    net = Network([784, 30, 10], cost=Network.CrossEntropy, debug=True)
 
     training_data, validation_data, test_data = mminst_loader.load_data_wrapper()
 
     print "Starting"
     start_time = timeit.default_timer()
-    net.SGD(training_data[1000], 30, 2, 0.5, test_data=test_data)
+    net.SGD(training_data, 30, 10, 0.1, decay=5.0, test_data=test_data)
     elapsed = timeit.default_timer() - start_time
     print "Elapsed time " + str(elapsed)
 
