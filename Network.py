@@ -52,7 +52,14 @@ class Network(object):
 
         return ""
 
-    def SGD(self, training_data, epochs, mini_batch_size, eta, decay=0.0,test_data=None):
+    def SGD(self,
+            training_data,
+            epochs,
+            mini_batch_size,
+            eta,
+            decay=0.0,
+            test_data=None,
+            early_stop = -1):
         """
         :param self:
         :param training_data: (X,Y) input.
@@ -61,6 +68,9 @@ class Network(object):
         :param eta: Number of iterations
         :param test_data:
         """
+
+        if early_stop < 0:
+            early_stop = epochs
 
         epoch_train_accuracy = []
         epoch_test_accuracy = []
@@ -71,6 +81,9 @@ class Network(object):
             n_test = len(test_data)
         n = len(training_data)
 
+        max = -1
+        duration_not_max = 0
+
         for j in xrange(epochs):
             rand.shuffle(training_data)
             mini_batches = [
@@ -79,9 +92,18 @@ class Network(object):
             for mini_batch in mini_batches:
                 self.update_mini_batch(mini_batch, eta ,decay ,  n)
             if test_data:
+
+                score = self.evaluate(test_data)
+
+                if score > max:
+                    max = score
+                    duration_not_max = 0
+                else:
+                    duration_not_max += 1
+
                 if self.debug:
                     print "Epoch {0}: {1} / {2}".format(
-                        j, self.evaluate(test_data), n_test)
+                        j, score, n_test)
             else:
                 if self.debug:
                     print "Epoch {0} complete".format(j)
@@ -91,6 +113,11 @@ class Network(object):
 
             epoch_test_accuracy.append(self.calc_accuracy(test_data))
             epoch_test_cost.append(self.calc_cost(test_data, convert=True))
+
+            if duration_not_max >= early_stop:
+                print "Score didn't rise for {0} epochs, exiting early".format(early_stop)
+                break
+
 
         self.epoch_train_accuracy = epoch_train_accuracy
         self.epoch_train_cost = epoch_train_cost
@@ -219,7 +246,7 @@ def main():
 
     print "Starting"
     start_time = timeit.default_timer()
-    net.SGD(training_data, 30, 10, 0.1, decay=5.0, test_data=test_data)
+    net.SGD(training_data, 30, 10, 0.1, decay=5.0, test_data=test_data, early_stop=10)
     elapsed = timeit.default_timer() - start_time
     print "Elapsed time " + str(elapsed)
 
