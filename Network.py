@@ -68,6 +68,7 @@ class Network(object):
         :param eta: Number of iterations
         :param test_data:
         """
+        orig_eta = eta
 
         if early_stop < 0:
             early_stop = epochs
@@ -115,8 +116,11 @@ class Network(object):
             epoch_test_cost.append(self.calc_cost(test_data, convert=True))
 
             if duration_not_max >= early_stop:
-                print "Score didn't rise for {0} epochs, exiting early".format(early_stop)
-                break
+                if eta * 128 < orig_eta:
+                    print "Score didn't rise for {0} epochs and learning rate is 1/128 of the original, exiting early".format(early_stop)
+                    break
+                else:
+                    eta *= 0.1
 
 
         self.epoch_train_accuracy = epoch_train_accuracy
