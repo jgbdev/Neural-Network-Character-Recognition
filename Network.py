@@ -2,9 +2,7 @@
 from __future__ import division
 import numpy as np
 import random as rand
-import mminst_loader
 import math as m
-import timeit
 
 
 class Network(object):
@@ -242,17 +240,3 @@ def sigmoid_prime(z):
     return sigmoid(z) * (1 - sigmoid(z))
 
 
-def main():
-
-    net = Network([784, 30, 10], cost=Network.CrossEntropy, debug=True)
-
-    training_data, validation_data, test_data = mminst_loader.load_data_wrapper()
-
-    print "Starting"
-    start_time = timeit.default_timer()
-    net.SGD(training_data, 30, 10, 0.1, decay=5.0, test_data=test_data, early_stop=10)
-    elapsed = timeit.default_timer() - start_time
-    print "Elapsed time " + str(elapsed)
-
-if __name__ == "__main__":
-    main()
