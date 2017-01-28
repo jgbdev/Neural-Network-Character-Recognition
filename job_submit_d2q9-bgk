@@ -16,7 +16,7 @@ device=${device#*gpu}
 export OCL_DEVICE=$device
 
 #! application name
-application="./run.py"
+application="python Run.py"
 
 #! Run options for the application
 options=""
