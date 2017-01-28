@@ -5,7 +5,7 @@ from theano.tensor.nnet import sigmoid
 from theano.tensor import tanh
 from theano.tensor.nnet import conv
 from theano.tensor.nnet import softmax
-from theano.tensor.signal.pool import pool_2d
+from theano.tensor.signal import downsample
 import numpy as np
 import cPickle
 import gzip
@@ -229,7 +229,7 @@ class ConvPoolLayer(object):
         conv_out = conv.conv2d(
             input=self.inpt, filters=self.w, filter_shape=self.filter_shape,
             image_shape=self.image_shape)
-        pooled_out = pool_2d(
+        pooled_out = downsample.max_pool_2d(
             input=conv_out, ds = self.poolsize, ignore_border=True)
         self.output = self.activation_fn(pooled_out + self.b.dimshuffle('x',0,'x','x'))
         self.output_dropout = self.output
@@ -244,4 +244,3 @@ def dropout_layer(layer, p_dropout):
         np.random.RandomState(0).randint(999999))
     mask = srng.binomial(n=1, p=1-p_dropout, size=layer.shape)
     return layer*T.cast(mask, theano.config.floatX)
-
