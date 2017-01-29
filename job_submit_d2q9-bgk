@@ -11,9 +11,9 @@
 #PBS -m a
 
 # Select the GPU that we've been allocated
-device=$(cat $PBS_GPUFILE)
-device=${device#*gpu}
-export OCL_DEVICE=$device
+export THEANO_FLAGS='floatX=float32,device=gpu0,lib.cnmem=1'
+export CUDA_ROOT=$CUDA_PATH/bin
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CUDA_PATH/lib64 
 
 #! application name
 application="python Run.py"
