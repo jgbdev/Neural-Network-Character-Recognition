@@ -3,7 +3,7 @@ import theano.tensor as T
 from theano.tensor import shared_randomstreams
 from theano.tensor.nnet import sigmoid
 from theano.tensor import tanh
-from theano.tensor.nnet import conv
+from theano.tensor.nnet import conv2d
 from theano.tensor.nnet import softmax
 from theano.tensor.signal import pool
 import numpy as np
@@ -227,7 +227,7 @@ class ConvPoolLayer(object):
 
     def set_inpt(self,inpt, inpt_dropout, mini_batch_size):
         self.inpt = inpt.reshape(self.image_shape)
-        conv_out = conv.conv2d(
+        conv_out = conv2d(
             input=self.inpt, filters=self.w, filter_shape=self.filter_shape,
             image_shape=self.image_shape)
         pooled_out = pool.pool_2d(
