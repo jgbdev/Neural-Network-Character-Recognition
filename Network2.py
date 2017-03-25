@@ -208,11 +208,11 @@ class SoftmaxLayer(object):
 
 class ConvPoolLayer(object):
 
-    def __init__(self, filter_shape, image_shape,
+    def __init__(self, filter_shape, input_shape,
                  poolsize=(2, 2),activation_fn=sigmoid):
 
         self.filter_shape = filter_shape
-        self.image_shape = image_shape
+        self.input_shape = input_shape
         self.poolsize = poolsize
         self.activation_fn = activation_fn
 
@@ -226,10 +226,10 @@ class ConvPoolLayer(object):
         self.params=[self.w, self.b]
 
     def set_inpt(self,inpt, inpt_dropout, mini_batch_size):
-        self.inpt = inpt.reshape(self.image_shape)
+        self.inpt = inpt.reshape(self.input_shape)
         conv_out = conv2d(
             input=self.inpt, filters=self.w, filter_shape=self.filter_shape,
-            image_shape=self.image_shape)
+            input_shape=self.input_shape)
         pooled_out = pool.pool_2d(
             input=conv_out, ws = self.poolsize, ignore_border=True)
         self.output = self.activation_fn(pooled_out + self.b.dimshuffle('x',0,'x','x'))

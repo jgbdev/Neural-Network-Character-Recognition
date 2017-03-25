@@ -36,10 +36,10 @@ def main():
     training_data, validation_data, test_data = n2.load_data_shared()
     mini_batch_size = 20
     # net = n1.Network([784, 30, 10], cost=n1.Network.CrossEntropy, debug=True)
-    net = n2.Network([n2.ConvPoolLayer(image_shape=(mini_batch_size, 1, 28, 28),
+    net = n2.Network([n2.ConvPoolLayer(input_shape=(mini_batch_size, 1, 28, 28),
                       filter_shape=(20, 1, 5, 5),
                       poolsize=(2, 2)),
-              n2.ConvPoolLayer(image_shape=(mini_batch_size, 20, 12, 12),
+              n2.ConvPoolLayer(input_shape=(mini_batch_size, 20, 12, 12),
                       filter_shape=(40, 20, 5, 5),
                       poolsize=(2, 2)),
               n2.FullyConnectedLayer(n_in=40*4*4, n_out=100),
@@ -48,7 +48,7 @@ def main():
 
     '''
     net = n2.Network([
-        n2.ConvPoolLayer(image_shape=(mini_batch_size, 1, 28, 28),
+        n2.ConvPoolLayer(input_shape=(mini_batch_size, 1, 28, 28),
                       filter_shape=(20, 1, 5, 5),
                       poolsize=(2, 2)),
         n2.FullyConnectedLayer(n_in=20 * 12 * 12, n_out=100),
