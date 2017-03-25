@@ -80,10 +80,11 @@ class Network(object):
         i = T.lscalar()
         train_mb = theano.function(
             [i], cost, updates=updates,
-               givens={self.x:
-                       training_x[i*self.mini_batch_size: (i+1)*self.mini_batch_size],
-                       self.y:
-                       training_y[i*self.mini_batch_size: (i+1)*self.mini_batch_size]})
+            givens={
+                self.x:
+                    training_x[i*self.mini_batch_size: (i+1)*self.mini_batch_size],
+                self.y:
+                    training_y[i*self.mini_batch_size: (i+1)*self.mini_batch_size]})
 
         validate_mb_accuracy = theano.function(
             [i], self.layers[-1].accuracy(self.y),
